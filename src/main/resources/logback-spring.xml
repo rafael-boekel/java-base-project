@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>	
+    
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}" />
+    <property name="LOG_FILE" value="${LOG_PATH}/application.log}"/>
+    <property resource="application.properties" />
+    
+    <springProperty scope="context" name="service" source="spring.application.name"/>
+    
+    <variable scope="local" name="mdcPattern" value="%replace(cid:%X{X-B3-TraceId}){'[a-zA-Z0-9_-]+:( |$)', ''}"/>
+  	<variable scope="local" name="logPattern" value="%d %-5p[%t] [${mdcPattern}] %c{20}: %m%n"/>
+    
+    <!-- LOG NO CONSOLE -->
+    <springProfile name="default">   	
+    
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<pattern>${logPattern}</pattern>
+			</layout>
+		</appender>     
+		 
+        <root level="INFO">        	
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        
+    </springProfile>    
+    
+    <springProfile name="prod">
+    
+    	<!-- LOG EM ARQUIVO -->
+	   	<appender name="ROLLING-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	        <encoder>
+	            <pattern>${logPattern}</pattern>
+	        </encoder>
+	        <file>${LOG_FILE}</file>
+	        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+	        </rollingPolicy>
+	    </appender>
+
+		<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<pattern>${logPattern}</pattern>
+			</layout>
+		</appender>
+		<root level="INFO">
+	    	<appender-ref ref="KINESIS" />
+	  		<appender-ref ref="ROLLING-FILE"/>
+			<appender-ref ref="CONSOLE"/>
+	    </root>  	
+	     
+    </springProfile>    
+</configuration>
