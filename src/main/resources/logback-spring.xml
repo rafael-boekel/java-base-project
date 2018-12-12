@@ -45,7 +45,6 @@
 			</layout>
 		</appender>
 		<root level="INFO">
-	    	<appender-ref ref="KINESIS" />
 	  		<appender-ref ref="ROLLING-FILE"/>
 			<appender-ref ref="CONSOLE"/>
 	    </root>  	
